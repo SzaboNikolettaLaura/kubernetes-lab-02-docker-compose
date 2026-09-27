@@ -1,0 +1,8 @@
+{$CADDY_SITE_ADDRESS} {
+	reverse_proxy api:8080 {
+		health_uri /ready
+		health_interval 30s
+		health_timeout 5s
+	}
+	log
+}

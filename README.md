@@ -16,3 +16,35 @@ Try to deploy the application in the live environment!
 If possible, set up Caddy as your web server.
 
 Fork this repository and continue your work here.
+
+## Run the completed stack
+
+The root `docker-compose.yaml` runs the API, PostgreSQL, and Caddy. Copy `.env.example` to `.env`, replace the database password, and start the services:
+
+```sh
+cp .env.example .env
+docker compose up -d --build
+```
+
+The API is available through Caddy at `http://localhost`. Caddy uses plain HTTP by default for local use. For a deployed environment, set `CADDY_SITE_ADDRESS` to a DNS name pointing at the host and Caddy will obtain HTTPS certificates automatically.
+
+Check the service and API documentation:
+
+```sh
+curl http://localhost/health
+curl http://localhost/ready
+```
+
+## Architecture
+
+Caddy and the API share the `backend` network. The API and PostgreSQL share the `database` network, while PostgreSQL is attached only to `database`. The API connects to PostgreSQL with `DB_HOST=postgres`, which is the database container name. The database network is internal and PostgreSQL has no published port.
+
+Items are stored in the PostgreSQL `items` table. The named `postgres_data` volume keeps them across container restarts and `docker compose down`. Start again with `docker compose up -d`, and use `docker compose down -v` only when you intentionally want to delete all stored data.
+
+Caddy stores its certificate state in the `caddy_data` and `caddy_config` volumes. The API exposes `/health` for liveness and `/ready` for database readiness.
+
+## Stop the services
+
+```sh
+docker compose down
+```
